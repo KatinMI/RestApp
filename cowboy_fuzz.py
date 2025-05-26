@@ -1,37 +1,52 @@
-from boofuzz import *
-import logging
+from boofuzz import Session, Target, TCPSocketConnection
+from boofuzz import FuzzLoggerText, FuzzLoggerCsv
+from boofuzz import logging
+import sys
 
-# Отключаем стандартные логи Python
-logging.disable(logging.CRITICAL)
+# Уровень логирования для файлов: только ошибки
+LOG_LEVEL = logging.ERROR
 
-# Callback для логирования ошибок
+# Кастомный фильтр для логгеров (пропускает только ошибки)
+class ErrorOnlyFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelno >= LOG_LEVEL
+
 def log_server_response(target, fuzz_data_logger, session, *args, **kwargs):
     try:
         response = target.recv(4096)
         if response:
-            fuzz_data_logger.log_error(f"Server response: {response}")
+            fuzz_data_logger.log_check(f"Server response: {response}")
     except Exception as e:
-        fuzz_data_logger.log_error(f"Error reading response: {e}")
+        fuzz_data_logger.log_check(f"Error reading response: {e}")
 
 def main():
+    # Создаем соединение
+    connection = TCPSocketConnection("127.0.0.1", 8080)
+
     # Цель
-    target = Target(
-        connection=TCPSocketConnection("127.0.0.1", 8080),
-        callbacks=[log_server_response]
-    )
+    target = Target(connection=connection)
 
-    # Логгеры (только ошибки)
-    txt_logger = FuzzLoggerText(file_handle=open("fuzz_errors.txt", "w"))
-    csv_logger = FuzzLoggerCsv(file_handle=open("fuzz_errors.csv", "w"))
+    # Файловые логгеры с фильтром ошибок
+    txt_file = open("fuzz_log.txt", "w")
+    csv_file = open("fuzz_log.csv", "w")
 
-    # Сессия (только ошибки + только падения)
+    txt_logger = FuzzLoggerText(file_handle=txt_file)
+    csv_logger = FuzzLoggerCsv(file_handle=csv_file)
+
+    # Применяем фильтр ошибок к файловым логгерам
+    for handler in txt_logger.handlers:
+        handler.addFilter(ErrorOnlyFilter())
+
+    for handler in csv_logger.handlers:
+        handler.addFilter(ErrorOnlyFilter())
+
+    # Сессия: веб-интерфейс показывает всё, файлы — только ошибки
     session = Session(
         target=target,
         post_test_case_callbacks=[log_server_response],
         fuzz_loggers=[txt_logger, csv_logger],
-        log_level=LOG_LEVEL.ERROR,
-        save_failures_only=True,
-        web_port=None
+        web_port=26000,
+        log_level=logging.INFO  # Веб-интерфейс: все события
     )
     s_initialize("http_request")
     with s_block("request_line"):
