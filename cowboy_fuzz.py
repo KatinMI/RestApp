@@ -1,38 +1,38 @@
 from boofuzz import *
 import logging
 
-# Функция для логирования ответа сервера
+# Отключаем стандартные логи Python
+logging.disable(logging.CRITICAL)
+
+# Callback для логирования ошибок
 def log_server_response(target, fuzz_data_logger, session, *args, **kwargs):
     try:
         response = target.recv(4096)
         if response:
-            fuzz_data_logger.log_check(f"Server response: {response}")
-            logging.info(f"Server response: {response}")
+            fuzz_data_logger.log_error(f"Server response: {response}")
     except Exception as e:
-        fuzz_data_logger.log_check(f"Error reading response: {e}")
+        fuzz_data_logger.log_error(f"Error reading response: {e}")
 
 def main():
-    # Создаем соединение
-    connection = TCPSocketConnection("127.0.0.1", 8080)
-
-    # Создаем цель с callback'ом
+    # Цель
     target = Target(
-        connection=connection,
-        callbacks=[log_server_response]  # Передаем callback здесь
+        connection=TCPSocketConnection("127.0.0.1", 8080),
+        callbacks=[log_server_response]
     )
 
-    txt_logger = FuzzLoggerText(file_handle=open("fuzz_log.txt", "w"))  # Логгер в .txt
-    csv_logger = FuzzLoggerCsv(file_handle=open("fuzz_log.csv", "w"))  # Логгер в .csv
+    # Логгеры (только ошибки)
+    txt_logger = FuzzLoggerText(file_handle=open("fuzz_errors.txt", "w"))
+    csv_logger = FuzzLoggerCsv(file_handle=open("fuzz_errors.csv", "w"))
 
-    # Создаем сессию с глобальным callback'ом
+    # Сессия (только ошибки + только падения)
     session = Session(
-        post_test_case_callbacks=[log_server_response],  # Глобальный callback
-        fuzz_loggers=[txt_logger, csv_logger],  # Оба логгера
-        web_port=26000  # Порт веб-интерфейса
+        target=target,
+        post_test_case_callbacks=[log_server_response],
+        fuzz_loggers=[txt_logger, csv_logger],
+        log_level=LOG_LEVEL.ERROR,
+        save_failures_only=True,
+        web_port=None
     )
-
-    # Добавляем цель в сессию
-    session.add_target(target)
     s_initialize("http_request")
     with s_block("request_line"):
         s_group("method", ["GET", "POST", "PUT", "DELETE", "HEAD", "PATCH", "OPTIONS"])
