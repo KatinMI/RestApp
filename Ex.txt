@@ -1,0 +1,287 @@
+Конечно! Ниже я сгенерирую **начальный корпус из 20 HTTP-запросов**, которые охватывают:
+- Разные **HTTP-методы** (`GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `HEAD`, `OPTIONS`)
+- Разные **заголовки**
+- Разные **пути**
+- Разные **версии HTTP** (`HTTP/1.0`, `HTTP/1.1`)
+- Разные **тела запросов**
+
+Эти файлы ты можешь положить в папку `corpus/` и использовать для фаззинга через `erlamsa`.
+
+---
+
+## 📁 Формат:
+
+Файлы будут называться:
+```
+req01.raw
+req02.raw
+...
+req20.raw
+```
+
+Каждый файл содержит **сырой TCP-пакет** (HTTP-запрос), подходящий для `erlamsa`.
+
+---
+
+### 🧪 Пример содержания одного файла (`req01.raw`):
+
+```http
+GET /index.html HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0
+
+```
+
+> Обрати внимание на **две пустые строки в конце** — это важно для правильного завершения заголовков.
+
+---
+
+# 📄 Содержание корпуса (все файлы)
+
+---
+
+### 🔹 `req01.raw` — GET, HTTP/1.1, стандартный запрос
+
+```http
+GET /index.html HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0
+
+```
+
+---
+
+### 🔹 `req02.raw` — POST, JSON, длинное тело
+
+```http
+POST /api/login HTTP/1.1
+Host: localhost
+Content-Type: application/json
+Content-Length: 45
+
+{"username": "admin", "password": "secret"}
+```
+
+---
+
+### 🔹 `req03.raw` — PUT, текстовое тело
+
+```http
+PUT /update/profile HTTP/1.1
+Host: localhost
+Content-Type: text/plain
+Content-Length: 17
+
+This is a test.
+```
+
+---
+
+### 🔹 `req04.raw` — DELETE, параметры в пути
+
+```http
+DELETE /users/12345 HTTP/1.1
+Host: localhost
+Authorization: Bearer abcdef123456
+
+```
+
+---
+
+### 🔹 `req05.raw` — PATCH, заголовок Accept
+
+```http
+PATCH /api/data/789 HTTP/1.1
+Host: localhost
+Accept: application/xml
+Content-Length: 11
+
+Update=Yes
+```
+
+---
+
+### 🔹 `req06.raw` — HEAD, минимальный запрос
+
+```http
+HEAD /robots.txt HTTP/1.1
+Host: localhost
+
+```
+
+---
+
+### 🔹 `req07.raw` — OPTIONS, звёздочка
+
+```http
+OPTIONS * HTTP/1.1
+Host: localhost
+Access-Control-Request-Method: POST
+
+```
+
+---
+
+### 🔹 `req08.raw` — GET, IP вместо Host
+
+```http
+GET / HTTP/1.1
+Host: 127.0.0.1
+
+```
+
+---
+
+### 🔹 `req09.raw` — GET, кириллический путь
+
+```http
+GET /%D1%82%D0%B5%D1%81%D1%82 HTTP/1.1
+Host: localhost
+
+```
+
+---
+
+### 🔹 `req10.raw` — GET, User-Agent Windows
+
+```http
+GET /test HTTP/1.1
+Host: localhost
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+
+```
+
+---
+
+### 🔹 `req11.raw` — GET, длинный Referer
+
+```http
+GET /page HTTP/1.1
+Host: localhost
+Referer: http://very.long.referer.url.example.com/path?query=params
+
+```
+
+---
+
+### 🔹 `req12.raw` — POST, multipart/form-data
+
+```http
+POST /upload HTTP/1.1
+Host: localhost
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+This is a file content.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+```
+
+---
+
+### 🔹 `req13.raw` — GET, HTTP/1.0
+
+```http
+GET /old HTTP/1.0
+Host: localhost
+
+```
+
+---
+
+### 🔹 `req14.raw` — GET, Cookie
+
+```http
+GET /profile HTTP/1.1
+Host: localhost
+Cookie: sessionid=abc123; user=admin
+
+```
+
+---
+
+### 🔹 `req15.raw` — TRACE, редкий метод
+
+```http
+TRACE / HTTP/1.1
+Host: localhost
+Max-Forwards: 1
+
+```
+
+---
+
+### 🔹 `req16.raw` — CONNECT, прокси-туннель
+
+```http
+CONNECT example.com:443 HTTP/1.1
+Host: example.com
+
+```
+
+---
+
+### 🔹 `req17.raw` — GET, много заголовков
+
+```http
+GET / HTTP/1.1
+Host: localhost
+X-Test-Header: value1
+X-Custom-Header: value2
+Cache-Control: no-cache
+Accept-Encoding: gzip, deflate
+If-Match: "etag"
+
+```
+
+---
+
+### 🔹 `req18.raw` — POST, XML
+
+```http
+POST /soap HTTP/1.1
+Host: localhost
+Content-Type: application/xml
+Content-Length: 63
+
+<soapenv:Envelope><soapenv:Body><Test/></soapenv:Body></soapenv:Envelope>
+```
+
+---
+
+### 🔹 `req19.raw` — GET, длинный URL
+
+```http
+GET /path/to/resource?param1=value1&param2=value2&param3=value3&param4=value4 HTTP/1.1
+Host: localhost
+
+```
+
+---
+
+### 🔹 `req20.raw` — GET, IPv6 хост
+
+```http
+GET / HTTP/1.1
+Host: [::1]
+
+```
+
+---
+
+# ✅ Как использовать?
+
+1. Создай папку `corpus/` в корне проекта.
+2. Сохрани каждый из этих примеров в отдельный файл:
+   ```
+   corpus/req01.raw
+   ...
+   corpus/req20.raw
+   ```
+3. Запусти `erlamsa` в Docker или локально с указанием этой папки как источника корпуса.
+
+---
+
+Хочешь, я помогу тебе написать скрипт на Bash/Python, который автоматически создаёт эти файлы? Или соберём готовую zip-подборку с корпусом?
