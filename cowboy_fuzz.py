@@ -159,3 +159,18 @@ def main():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)  # Настройка логирования
     main()
+ebar3 compile
+erl -pa _build/default/lib/*/ebin
+cover:start().
+cover:compile_beam_directory("_build/default/lib/cowboy/ebin").
+cover:compile_beam_directory("_build/default/lib/cowlib/ebin").
+cover:compile_beam_directory("_build/default/lib/ranch/ebin").
+application:start(crypto).
+application:start(cowlib).
+application:start(asn1).
+application:start(public_key).
+application:start(ssl).
+application:start(ranch).
+application:start(cowboy).
+application:start(fuzz_cowboy).
+cover:analyse_to_file({application, fuzz_cowboy}, "fuzz_cowboy_coverage.html").
